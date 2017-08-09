@@ -1,0 +1,226 @@
+---
+title: "Capstone Project Week 2 - Project"
+author: "Robin"
+date: "6 August 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(scipen = 10, message = FALSE)
+library(downloader)
+suppressMessages(library(sqldf))
+library(readr)
+library(R.utils)
+library(tm)
+library(SnowballC)
+library(ggplot2)
+library(grid)
+library(gridExtra)
+library(wordcloud)
+library(RColorBrewer)
+setwd("C:/Users/Robin/datasciencecoursera/Capstone/Data")
+```
+
+#Week 2 Milestone Report for the Capstone Project
+
+##Introduction
+
+This is the Week 2 Report of the Capstone Project for the Data Science Specialisation. In this report we will try to demonstrate the exploratory analysis we have done trying to understand in the best possible way the nature of the data sets that will be used for creating the prediction algorithm and the final Shiny app. We will show how we downloaded the datasets, how we loaded them into R, we will show some statistics for our data that will be useful in the future creating the prediction algorithm and the final app.
+
+
+###Download and extract data
+
+We use the [link](https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip) provided in the syllabus for the Capstone project to download the Swiftkey zip file containing the data sets, that once extracted, will be used for our project. We then unzip and use only the files from the English database. The English database consists of three separate text files named en_US.blogs.txt, en_US.news.txt and en_US.twitter.txt.
+```{r get data, tidy = TRUE}
+url <- "https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip"
+if (!file.exists("./Coursera-SwiftKey.zip")) {
+     download(url, dest = "./Coursera-SwiftKey.zip", mode = "wb")
+}
+txtFiles <- unzip("./Coursera-SwiftKey.zip",list = TRUE)
+txtFiles <- as.vector(t(sqldf("select Name from txtFiles where Name LIKE ('Cousera-Swiftkey/final/en_US/en%')")))
+if (!dir.exists("./Cousera-Swiftkey")) {
+     unzip("./Coursera-SwiftKey.zip",files = txtFiles,overwrite = TRUE)     
+} else {
+     for (txtFile in txtFiles) {
+          if (!file.exists(txtFile)) {
+               unzip("Coursera-SwiftKey.zip",files = txtFile,overwrite = TRUE) 
+          }
+     }
+}
+```
+###After downloading the data sets, we commence to load the files and then assess the sizing.
+```{r read data, warning=FALSE, tidy=TRUE}
+twitter <- readLines(con <- file("./Coursera-SwiftKey/final/en_US/en_US.twitter.txt", encoding = "UTF-8"))
+close(con)
+blogs <- readLines(con <- file("./Coursera-SwiftKey/final/en_US/en_US.news.txt", encoding = "UTF-8"))
+close(con)
+news <- readLines(con <- file("./Coursera-SwiftKey/final/en_US/en_US.blogs.txt", encoding = "UTF-8"))
+close(con)
+```
+```{r Processing Files, eval=FALSE}
+#getting the number of lines in the files
+twitter_lines <- countLines('./Coursera-SwiftKey/final/en_US/en_US.twitter.txt')
+blogs_lines <- countLines('./Coursera-SwiftKey/final/en_US/en_US.news.txt')
+news_lines <- countLines('./Coursera-SwiftKey/final/en_US/en_US.blogs.txt')
+## Getting the size of the Files
+blog_size <- file.info('./Coursera-Swiftkey/final/en_US/en_US.blogs.txt')$size/(1024^2)
+news_size <- file.info('./Coursera-Swiftkey/final/en_US/en_US.news.txt')$size/(1024^2)
+twitter_size <- file.info('./Coursera-Swiftkey/final/en_US/en_US.twitter.txt')$size/(1024^2)
+## Getting the number of words for each file
+twitter_Words <- sum(sapply(gregexpr("\\W+", twitter),   length)) + 1
+news_Words <- sum(sapply(gregexpr("\\W+", news),   length)) + 1
+blogs_Words <- sum(sapply(gregexpr("\\W+", blogs),   length)) + 1
+knitr::kable(data.frame(
+              files = c("blogs","news","twitter"),
+              Size_Mb = c(blog_size,news_size,twitter_size),
+              Words = c(blogs_Words,news_Words,twitter_Words),
+              Lines(blogs_lines,news_lines,twitter_lines),
+              
+  )
+)
+```
+  Files |Size_Mb  |Words    |Lines    |
+|-------|---------|---------|---------|
+|blogs  |200.42   |38050950 |899289   |
+|news   |196.28   |35628125 |1010243  |
+|twitter|159.36   |31062690 |2360149  |
+
+
+
+Due to the big size of our files, that made processing both difficult & time consuming of the calculations on our data sets, we now create three separate sample files, 10000 rows each, one for each text file, in order to create our corpus and wich will enable us to do all the preprocessing and calculations at a more expedient rate.
+```{r sample}
+sampleTwitter <- sample(twitter, 10000, replace = FALSE)
+sampleBlogs <- sample(blogs, 10000, replace = FALSE)
+sampleNews <- sample(news, 10000, replace = FALSE)
+repo <- "./Coursera-Swiftkey/final/en_US/sample"
+if (!dir.exists(repo)) {
+     dir.create(repo)
+}
+```
+We now commence to create our corpus from the sample files and do all the preprocessing needed to cleanse our data. We name it myCorpus.
+
+```{r cleansefiles}
+con <- file("./en.txt", "rb")
+profanity <- readLines(con,skipNul = TRUE, warn = FALSE)
+close(con)
+repo <- "./Coursera-Swiftkey/final/en_US/sample"
+myCorpus <- VCorpus(
+                     DirSource(repo, pattern = 'txt', encoding = 'UTF-8'),
+                     readerControl = list(language = 'en')
+                     )
+# Custom function used to remove non ASCII characters.
+removeNonASCII <- content_transformer(function(x)
+     gsub("[^\x20-\x7E]","", x))
+# Custom function used to remove URLs.
+removeURLs <- content_transformer(function(x)
+     gsub("(f|ht)tp(s?):(\\s*?)//(.*)[.][a-z]+(/?)", "", x))
+# Data cleansing and transformations.
+myCorpus <- tm_map(myCorpus, removeNonASCII)
+myCorpus <- tm_map(myCorpus, content_transformer(tolower))
+myCorpus <- tm_map(myCorpus, removeURLs)
+myCorpus <- tm_map(myCorpus, removeWords, stopwords("english"))
+myCorpus <- tm_map(myCorpus, removeWords, stopwords("SMART"))
+myCorpus <- tm_map(myCorpus, removePunctuation)
+myCorpus <- tm_map(myCorpus, removeNumbers)
+myCorpus <- tm_map(myCorpus, stripWhitespace)
+myCorpus <- tm_map(myCorpus, removeWords, profanity)
+myCorpus <- tm_map(myCorpus, stemDocument)
+#To proceed, we create a document term matrix.This is what we will be using from this point on:
+dtm <- DocumentTermMatrix(myCorpus)   
+dtm   
+#We refine our document term matrix by removing sparse terms:
+dtms <- removeSparseTerms(dtm, 0.1)    
+dtms  
+```
+##Exploratory analysis
+
+We will organize our terms in order to be useful for the calculations and the plotting that we will do. At first we organize all the terms in the dtms by frequency in descending order:
+```{r freq}
+freq <- sort(colSums(as.matrix(dtms)), decreasing = TRUE)    
+```
+The ten most frequent words are:
+```{r head freq}
+head(freq,10)  
+```
+
+The ten least frequent words are:
+```{r tail freq}
+tail(freq,10)  
+```
+
+We can find the associations (terms that correlate) of the most or least frequent words using the findAssocs() function. For example, the correlated terms, with a correlation percentage 0.99, for the word "love" are the following:
+```{r words}
+findAssocs(dtms,"love",corlimit = 0.99)
+```
+
+##Plotting
+We plot the word frequencies from our data:
+```{r Plotting freq}
+
+df <- data.frame(word = names(freq),freq = freq)
+p <- ggplot(subset(df, freq > 500), aes(word, freq))
+p <- p + geom_bar(stat = "identity")
+p <- p + theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+p <- p + xlab("Word")
+p <- p + ylab("Frequency")
+p <- p + ggtitle("Words with more than 500 appearences") 
+p
+```
+
+We then use the wordcloud package to re-inspect the most frequent words from our corpus.
+
+```{r wordCloud}
+set.seed(12345) 
+pal <- brewer.pal(8,"Dark2")
+tmp <- data.frame(word = names(freq), freq = freq) 
+row.names(tmp) <- NULL
+tmp <- head(tmp,100)
+wordcloud(words = tmp$word,freq = tmp$freq,random.order = FALSE, colors = pal) 
+```
+
+We can clearly see that there are certain words like year, time or love that leap out at us indicating they are repeated many times in our corpus as previously confirmed in prior steps.
+
+
+##Tokenization
+
+We procede with the Tokenization processing in order to create some ngrams which will help us to find the word combinations that occur more often. We create three kind of ngrams, a single word ngram, a two word ngram and a three word ngram and in the following plots we show which are the top ten most frequent word combinations for the three examples.
+
+```{r ngrams, message=FALSE, tidy=TRUE}
+require(RWeka)
+#require(rJava)
+## tokenizer functions
+unigram <- function(x) NGramTokenizer(x, Weka_control(min = 1, max = 1))
+bigram  <- function(x) NGramTokenizer(x, Weka_control(min = 2, max = 2))
+trigram <- function(x) NGramTokenizer(x, Weka_control(min = 3, max = 3))
+## n-grams frequency function
+FreqEvaluation <- function(tdm) {
+  freq <- sort(rowSums(as.matrix(tdm)), decreasing = TRUE)
+  return(data.frame(word = names(freq), freq = freq))
+}
+## frequency plotting function
+makePlot <- function(data, label) {
+  ggplot(data[1:50,], aes(reorder(word, -freq), freq)) +
+         labs(x = label, y = "Frequency") +
+         theme(axis.text.x = element_text(angle = 60, size = 12, hjust = 1)) +
+         geom_bar(stat = "identity", fill = I("grey50"))
+} 
+```
+
+```{r freq word plot, message=FALSE}
+require(RWeka)
+freqUnigrams <- FreqEvaluation(removeSparseTerms(TermDocumentMatrix(myCorpus, contro = list(tokenize = unigram)), 0.99))
+makePlot(freqUnigrams, "Most frequent unigrams")
+```
+
+```{r 2word plot, message=FALSE}
+require(RWeka)
+freqBigrams <- FreqEvaluation(removeSparseTerms(TermDocumentMatrix(myCorpus, control = list(tokenize = bigram)), 0.999))
+makePlot(freqBigrams, "Most frequent bigrams")
+```
+
+```{r 3word plot, message=FALSE}
+require(RWeka)
+freqTrigrams <- FreqEvaluation(removeSparseTerms(TermDocumentMatrix(myCorpus, control = list(tokenize = trigram)), 0.9999))
+makePlot(freqTrigrams, "Most frequent  trigrams")
+```
