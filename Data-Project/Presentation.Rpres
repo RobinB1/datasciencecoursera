@@ -8,10 +8,10 @@ autosize: true
 
 Introduction
 ========================================================
->- The Text Prediction Application is the Capstone Project for the Data Science Specialisation course hosted by Coursera and run by John Hopkins University.<
+- The Text Prediction Application is the Capstone Project for the Data Science Specialisation course hosted by Coursera and run by John Hopkins University.<
 - The initial phase of the project was to download the Swiftkey text files (Twitter, Blogs & News text files), creating a workable dataset. They were sizable text files, ranging from 160 to 205 megabyte.
 - That dataset is cleansed, removing unwanted objects e.g. numbers, punctuation, unwanted characters, any profanity and chaning it all to a uniform case.
-- With the add of the dataset develop an algorithm to process the dataset for common occurring words and/or phrases.
+- With the add of the dataset then develop an algorithm to process the dataset for common occurring words and/or phrases.
 - Use Shiny to develop a front end for the algorithm, allowing users to enter text then submit for the algorithm to predict the next word.
 
 
