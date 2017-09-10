@@ -22,12 +22,11 @@ shinyUI(fluidPage(
                          p("1. Type some text into the text box under the Text input heading"),
                          p("2. \"Text input\" values are restricted to only alphabetical words."),
                          h4("Input / Output"),
-                         p("1. User may input any words, however it will be preprocessed before submitting"),
+                         p("1. User may input any words, however the algorithm will commence processing the text prior to selecting the Submit Text button"),
                          p("2. On Submitting, the Result tab will display."),
-                         p("3. The text box \"The original submitted text:\" will display the text the user."),
-                         p("4. The text box \"The submitted text has been reformatted to the following:,\""),
-                         p("will show the text after preprocessed."),
-                         p("5. The text box \"The most likely next word will be:,\" will show the predicted words."),
+                         p("3. \"The original submitted text:\" will display the text the user."),
+                         p("4. \"The submitted text has been reformatted to the following:,\" will be displayed to the user."),
+                         p("5. \"The probability of the most likely next word will be:,\" will show the predicted words."),
                          div(p("* As an added extra, the Themes widget is added, allowing the User to change colour schemes to suit their own preference (mine is Cyborg)."),style = "color:red")),
                 tabPanel(title = "Result",
                          h4("The original submitted text:"),
@@ -40,7 +39,7 @@ shinyUI(fluidPage(
                          h4("The most likely next word will be:"),
                          div(textOutput("BestGuess")),
                          br(),
-                         h4("The program guessed your word based on the following data:"),
+                         h4("The program assessed your word based on the following data:"),
                          tableOutput("view")))
     )
   )

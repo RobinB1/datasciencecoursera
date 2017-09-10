@@ -1,42 +1,41 @@
-<img src="logos.png" style="background-color:transparent; box-shadow:none;text-align:center"></img>
-Cousera Data Science Specialisation - Capstone Project Presentation
+<img src="logos.png" style="background-color:transparent; box-shadow:none"></img>
+Data Science Specialisation - Capstone Project
 ========================================================
 author: Robin
 date: 10th September 2017
 autosize: true
 
 
-Slide 2
+Introduction
+========================================================
+>- The Text Prediction Application is the Capstone Project for the Data Science Specialisation course hosted by Coursera and run by John Hopkins University.<
+- The initial phase of the project was to download the Swiftkey text files (Twitter, Blogs & News text files), creating a workable dataset. They were sizable text files, ranging from 160 to 205 megabyte.
+- That dataset is cleansed, removing unwanted objects e.g. numbers, punctuation, unwanted characters, any profanity and chaning it all to a uniform case.
+- With the add of the dataset develop an algorithm to process the dataset for common occurring words and/or phrases.
+- Use Shiny to develop a front end for the algorithm, allowing users to enter text then submit for the algorithm to predict the next word.
+
+
+
+The Algorithm & Model
+========================================================
+- The downloaded dataset was refined using the [TM](https://cran.r-project.org/web/packages/tm/tm.pdf) package from R
+- TM allows the processing of the dataset for removal of Numbers, Punctuation, Remove Sparse Terms, Stop Words or Strip Whitespace
+- The cleansed dataset was then inspected using the [NLP](https://cran.r-project.org/web/packages/NLP/NLP.pdf) package
+- The NLP package then allows for the examination of the dataset for common words and phrases.
+
+User Interface
+========================================================
+1. The User enters the text into the Text Input text field and select the Submit Text button.
+- User may input many words, however the algorithm will commence processing the text from the first word and prior to selecting the Submit Text button.
+2. On Submitting the entered text, the Result tab will display.
+3. A text box will display the text the user.
+4. A second text box will display the text which has been reformatted.
+5. A table will show the probability of the most likely next word will be.
+6. As an added extra to make the GUI more appealing, I have added the Themes widget, allowing the User to change colour schemes to suit their own preference
+
+
+Resources
 ========================================================
 
-For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
-
-- Bullet 1
-- Bullet 2
-- Bullet 3
-
-Slide 3
-========================================================
-
-
-```r
-summary(cars)
-```
-
-```
-     speed           dist       
- Min.   : 4.0   Min.   :  2.00  
- 1st Qu.:12.0   1st Qu.: 26.00  
- Median :15.0   Median : 36.00  
- Mean   :15.4   Mean   : 42.98  
- 3rd Qu.:19.0   3rd Qu.: 56.00  
- Max.   :25.0   Max.   :120.00  
-```
-
-Slide 4
-========================================================
-
-![plot of chunk unnamed-chunk-2](Presentation-figure/unnamed-chunk-2-1.png)
-
-Slide 5
-========================================================
+1. File Repository [Github](https://github.com/RobinB1/datasciencecoursera/tree/RobinB1-Capstone_Project/Data-Project)
+2. User Interface [Predicted App](https://robinb1.shinyapps.io/capstone-project/)

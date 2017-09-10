@@ -1,0 +1,13 @@
+name: capstone-project
+title: Capstone-Project
+username:
+account: robinb1
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 212751
+bundleId: 974756
+url: https://robinb1.shinyapps.io/capstone-project/
+when: 1505014215.47288
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: Presentation-rpubs.html|Presentation.md|Presentation.Rpres|data/Coursera-SwiftKey.zip
